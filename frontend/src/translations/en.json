@@ -1,0 +1,29 @@
+{
+  "nav_about": "About",
+  "nav_privacy": "Privacy",
+  "hero_title": "Share files directly from your device",
+  "hero_subtitle": "Send files of any size directly without storing anything online.",
+  "drop_title": "Click to browse or drag files here",
+  "drop_subtitle": "End-to-end encrypted",
+  "feature_1": "No file size limit",
+  "feature_2": "Blazingly fast",
+  "feature_3": "Peer-to-peer",
+  "footer_text": "© 2026 CandyShare. No external telemetry.",
+  "made_in_india": "Made in India",
+  "developed_by": "Designed & Developed by",
+
+
+  "about_hero_title": "Simply sweet",
+  "about_story_1": "Have you ever tried to share a massive 5GB video file with a colleague sitting right next to you? Email has a 25MB limit, USB drives are a hassle, and uploading to a cloud service just to download it again takes forever.",
+  "about_story_2": "It was an incredibly frustrating experience. We knew there had to be a better way.",
+  "about_sub_title": "Building a solution",
+  "about_solution": "That frustration led to CandyShare. We believe file transfer should be instant, limitless, and secure. With CandyShare, nothing is ever stored online. Your data travels directly from your device to the receiver, meaning there are no file size limits or artificial speed caps.",
+  
+  "privacy_hero_title": "Your privacy, guaranteed.",
+  "privacy_p1_title": "1. Zero Server Storage",
+  "privacy_p1_desc": "We do not store, view, or intercept any files you transfer. Your files stream directly between browsers. The moment you close your tab, the connection is destroyed forever.",
+  "privacy_p2_title": "2. End-to-End Encryption",
+  "privacy_p2_desc": "All transfers are secured natively by WebRTC using DTLS 1.3 (Datagram Transport Layer Security). No middleman—not even our servers—can read your file bytes in transit.",
+  "privacy_p3_title": "3. Absolute Zero Telemetry",
+  "privacy_p3_desc": "We respect your digital footprint. CandyShare includes absolutely zero external trackers, analytics, or advertisements. Your business stays your business."
+}
