@@ -50,7 +50,7 @@ export default function SenderBox() {
   };
 
   return (
-    <div className="bg-white p-5 sm:p-6 rounded-[2.5rem] shadow-2xl w-full max-w-[360px] aspect-square relative overflow-hidden flex flex-col transition-all duration-500 mx-auto border border-gray-100">
+    <div className="bg-white p-5 sm:p-6 rounded-[2.5rem] shadow-2xl w-full max-w-[420px] aspect-square relative overflow-hidden flex flex-col transition-all duration-500 mx-auto border border-gray-100">
       
       {transferState === 'idle' && (
         <>
@@ -68,7 +68,7 @@ export default function SenderBox() {
       )}
 
       {transferState === 'waiting' && file && (
-        <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+        <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300 ">
           <button onClick={resetBox} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors" title={t.btn_cancel || "Cancel"}>✕</button>
           <p className="text-brand-600 font-semibold mb-3 sm:mb-4 animate-pulse text-sm sm:text-base">
             {t.status_waiting || "Waiting for receiver..."}
@@ -84,6 +84,9 @@ export default function SenderBox() {
             <span className="text-brand-900 text-xs sm:text-sm font-medium truncate mr-2">{roomId ? `.../receive/${roomId}` : 'Generating...'}</span>
             <span className="text-brand-600 text-xs sm:text-sm font-bold bg-white px-2 py-1 rounded shadow-sm">Copy</span>
           </div>
+          <p className="text-[11px] text-gray-400 text-center mt-3 leading-tight">
+  💡 {t.network_tip}
+          </p>
         </div>
       )}
 

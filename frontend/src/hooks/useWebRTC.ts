@@ -132,7 +132,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
       { urls: 'stun:stun1.l.google.com:19302' }
     ];
 
-    const apiKey = process.env.NEXT_METERED_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_METERED_API_KEY;
     const domain = process.env.NEXT_PUBLIC_METERED_DOMAIN || 'candyshare.metered.live';
 
     if (apiKey) {
@@ -256,6 +256,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
             readSlice(offset);
           }
         } else {
+          recordAuditLog(fileToSend.name, fileToSend.size, 'COMPLETED');
           setTimeout(() => setTransferState('completed'), 500);
         }
       } catch (err) {
@@ -279,7 +280,8 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     a.download = expectedNameRef.current;
     a.click();
     URL.revokeObjectURL(url);
-    
+
+    recordAuditLog(expectedNameRef.current, expectedSizeRef.current, 'RECEIVED');
     setTransferState('completed');
   };
 
@@ -288,6 +290,46 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     setProgress(0);
     setSpeed('0 MB/s');
     receivedBuffersRef.current = [];
+  };
+
+  const getSizeBucket = (bytes: number): string => {
+    if (bytes < 1024) return '< 1KB';
+    if (bytes < 100 * 1024) return '< 100KB';
+    if (bytes < 1024 * 1024) return '< 1MB';
+    if (bytes < 100 * 1024 * 1024) return '< 100MB';
+    if (bytes < 1024 * 1024 * 1024) return '< 1GB';
+    if (bytes < 10 * 1024 * 1024 * 1024) return '< 10GB';
+    return '> 10GB';
+  };
+
+  const getFileCategory = (name: string): string => {
+    const ext = name.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) return 'IMAGE';
+    if (['mp4', 'mkv', 'mov', 'avi', 'webm'].includes(ext)) return 'VIDEO';
+    if (['pdf', 'doc', 'docx', 'txt', 'ppt', 'xlsx'].includes(ext)) return 'DOCUMENT';
+    if (['zip', 'rar', 'tar', '7z', 'gz'].includes(ext)) return 'ARCHIVE';
+    return 'OTHER';
+  };
+
+  const recordAuditLog = async (name: string, size: number, status: string) => {
+    try {
+      const backendHttp = (process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080')
+        .replace('wss://', 'https://')
+        .replace('ws://', 'http://')
+        .replace('/ws/signaling', '');
+
+      await fetch(`${backendHttp}/api/v1/audit/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId,
+          fileCategory: getFileCategory(name),
+          sizeBucket: getSizeBucket(size),
+          status
+        })
+      });
+    } catch (e) {
+    }
   };
 
   return { transferState, progress, speed, reset, downloadFile: assembleAndDownload };

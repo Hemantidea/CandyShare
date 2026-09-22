@@ -30,29 +30,42 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
-		<!-- 1. WebSockets (Allows real-time P2P signaling) -->
+		<!-- 1. WebSockets for WebRTC Signaling -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 
-		<!-- 2. Spring Web (Provides the JSON parser: ObjectMapper & JsonNode) -->
+		<!-- 2. Spring Web for REST APIs & JSON -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- 3. Testing tools (Default Spring Boot stuff) -->
+		<!-- 3. Explicit JSON Parser -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- 4. Spring Data JPA & Hibernate (Fixes the red errors!) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- 5. PostgreSQL Driver for Neon Database -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 6. Test Tools -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<!-- Explicitly pull in the JSON parser -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
 		</dependency>
 	</dependencies>
 
