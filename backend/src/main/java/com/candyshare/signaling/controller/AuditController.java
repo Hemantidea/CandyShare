@@ -17,6 +17,11 @@ public class AuditController {
     @Autowired
     private TransferAuditRepository auditRepository;
 
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("OK");
+    }
+
     @PostMapping("/log")
     public ResponseEntity<String> logTransfer(@RequestBody Map<String, Object> payload) {
         String roomId = (String) payload.get("roomId");
