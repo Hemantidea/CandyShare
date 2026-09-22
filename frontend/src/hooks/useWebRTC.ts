@@ -23,7 +23,8 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   useEffect(() => {
     if (!roomId) return;
 
-    const ws = new WebSocket('ws://localhost:8080/ws/signaling');
+    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws/signaling';
+    const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
