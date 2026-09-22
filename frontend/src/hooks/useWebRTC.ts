@@ -96,7 +96,6 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   };
 
   const initWebRTC = () => {
-    // Upgraded with OpenRelay TURN for global mobile NAT traversal
     const configuration = { 
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -107,6 +106,11 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
         },
         { 
           urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        { 
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
           username: 'openrelayproject',
           credential: 'openrelayproject'
         }
