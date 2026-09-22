@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           
           <Image 
             src="/privacy-art.png" 
-            alt="Privacy Illustration" 
+            alt="Privacy Illustration AI" 
             fill 
             className="object-cover z-20"
           />
