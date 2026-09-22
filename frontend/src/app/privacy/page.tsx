@@ -23,18 +23,12 @@ export default function PrivacyPage() {
         <div className="flex-1 w-full max-w-md relative aspect-square rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-100 bg-brand-50 flex items-center justify-center group">
           <div className="absolute inset-0 bg-brand-200 blur-[40px] opacity-30 rounded-full group-hover:opacity-50 transition-opacity duration-500"></div>
           
-          <span className="text-brand-300 font-medium z-10 text-center px-4">
-            [ Add your AI Generated Image here ]<br/>
-            Name it <code className="text-brand-500">privacy-art.png</code><br/>
-            and put it in the <code className="text-brand-500">public</code> folder
-          </span>
-          
-          {/* <Image 
+          <Image 
             src="/privacy-art.png" 
             alt="Privacy Illustration" 
             fill 
             className="object-cover z-20"
-          /> */}
+          />
         </div>
       </div>
 
