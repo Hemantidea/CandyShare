@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import CandySpinner from '@/components/CandySpinner';
@@ -9,14 +9,43 @@ export default function ReceivePage() {
   const { t } = useLanguage();
   const params = useParams();
   const roomId = params.roomId as string;
-  const { transferState, progress, speed, downloadFile } = useWebRTC(roomId, 'receiver');
+  
+  // NEW: State to prevent WhatsApp bots from stealing the connection
+  const [hasJoined, setHasJoined] = useState(false);
+  
+  // Only pass the roomId to the hook IF the user has clicked Accept
+  const { transferState, progress, speed, downloadFile } = useWebRTC(hasJoined ? roomId : '', 'receiver');
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 mt-12 md:mt-24 px-4">
+      
+      {/* LEFT SIDE: Receiver Status Box */}
       <div className="flex-1 flex justify-center w-full">
         <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl w-full max-w-[360px] aspect-square relative overflow-hidden flex flex-col items-center justify-center transition-all duration-500">
           
-          {(transferState === 'idle' || transferState === 'waiting') && (
+          {/* STATE 0: WAITING FOR USER TO CLICK ACCEPT (Blocks WhatsApp Bots!) */}
+          {!hasJoined && (
+            <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in duration-300">
+              <div className="w-24 h-24 bg-brand-50 rounded-full flex items-center justify-center mb-6 border-4 border-brand-100">
+                <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.incoming_file || "Incoming File..."}</h2>
+              <p className="text-gray-500 text-center font-medium mb-8">
+                Room ID: <span className="text-brand-600 bg-brand-50 px-2 py-1 rounded font-mono">{roomId}</span>
+              </p>
+              <button 
+                onClick={() => setHasJoined(true)}
+                className="bg-brand-500 text-white font-semibold py-3 px-8 rounded-full hover:bg-brand-600 transition-colors duration-300 shadow-md shadow-brand-500/30 w-[85%]"
+              >
+                {t.btn_accept || "Accept Transfer"}
+              </button>
+            </div>
+          )}
+
+          {/* STATE 1: CONNECTING TO JAVA SERVER */}
+          {hasJoined && (transferState === 'idle' || transferState === 'waiting') && (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in duration-300">
               <div className="relative flex items-center justify-center mb-6">
                 <CandySpinner className="w-28 h-28 drop-shadow-md" />
@@ -31,7 +60,8 @@ export default function ReceivePage() {
             </div>
           )}
 
-          {transferState === 'transferring' && (
+          {/* STATE 2: TRANSFERRING */}
+          {hasJoined && transferState === 'transferring' && (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
               <div className="w-20 h-20 bg-brand-50 rounded-full flex items-center justify-center mb-6 border-4 border-brand-100 relative">
                 <div className="absolute inset-0 rounded-full border-4 border-brand-400 animate-ping opacity-20"></div>
@@ -52,7 +82,8 @@ export default function ReceivePage() {
             </div>
           )}
 
-          {transferState === 'completed' && (
+          {/* STATE 3: COMPLETED */}
+          {hasJoined && transferState === 'completed' && (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
               <div className="relative w-24 h-24 flex items-center justify-center mb-6 mx-auto">
                 <div className="absolute inset-0 bg-brand-100 rounded-full animate-[ping_2s_ease-out_infinite] opacity-60"></div>
@@ -73,7 +104,6 @@ export default function ReceivePage() {
                 File received successfully!
               </p>
 
-              {/* NEW DOWNLOAD AGAIN BUTTON */}
               <button 
                 onClick={downloadFile}
                 className="bg-gray-900 text-white font-semibold py-2.5 px-8 rounded-full hover:bg-brand-600 transition-colors duration-300 shadow-md flex items-center gap-2"
@@ -83,12 +113,13 @@ export default function ReceivePage() {
                 </svg>
                 {t.btn_download_again || "Download Again"}
               </button>
-              
             </div>
           )}
+
         </div>
       </div>
 
+      {/* RIGHT SIDE: Hero Text */}
       <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
         <h1 className="text-4xl md:text-5xl font-bold text-brand-900 mb-6 leading-tight">
           Ready to receive

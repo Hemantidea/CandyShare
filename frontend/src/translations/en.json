@@ -28,5 +28,7 @@
   "status_completed": "Sweet Success!",
   "btn_cancel": "Cancel",
   "btn_share_another": "Share another file",
-  "btn_download_again": "Download Again"
+  "btn_download_again": "Download Again",
+  "btn_accept": "Accept Transfer",
+  "incoming_file": "Incoming File..."
 }

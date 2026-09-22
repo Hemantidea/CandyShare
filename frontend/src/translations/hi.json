@@ -37,5 +37,7 @@
   "status_completed": "सफलतापूर्वक भेज दिया गया!",
   "btn_cancel": "रद्द करें",
   "btn_share_another": "दूसरी फ़ाइल भेजें",
-  "btn_download_again": "फिर से डाउनलोड करें"
+  "btn_download_again": "फिर से डाउनलोड करें",
+  "btn_accept": "फ़ाइल स्वीकार करें",
+  "incoming_file": "फ़ाइल आ रही है..."
 }
