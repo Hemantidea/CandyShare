@@ -6,8 +6,11 @@ WORKDIR /app
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
 
-# Convert Windows line endings to Linux (Fixes a very common Windows error)
+# Convert Windows line endings to Linux
 RUN sed -i 's/\r$//' mvnw
+
+# FIX: Grant execution permission to the maven wrapper
+RUN chmod +x mvnw
 
 # Download dependencies (cache them)
 RUN ./mvnw dependency:go-offline
