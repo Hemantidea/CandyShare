@@ -13,6 +13,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   const channelRef = useRef<RTCDataChannel | null>(null);
   const fileRef = useRef<File | null | undefined>(file);
   const iceQueueRef = useRef<RTCIceCandidateInit[]>([]);
+  const isMakingOfferRef = useRef(false);
   
   const bytesTransferredRef = useRef(0);
   const lastTimeRef = useRef(Date.now());
@@ -48,26 +49,56 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
       const message = JSON.parse(event.data);
       if (!rtcRef.current) return;
 
+      const pc = rtcRef.current;
+
       try {
+        // 1. Sender receives "ready" -> Create Offer only if in 'stable' state
         if (message.type === 'ready' && role === 'sender') {
-          const offer = await rtcRef.current.createOffer();
-          await rtcRef.current.setLocalDescription(offer);
-          ws.send(JSON.stringify({ type: 'offer', roomId, offer }));
+          if (pc.signalingState !== 'stable' || isMakingOfferRef.current) {
+            console.warn('[CandyShare] Skipping offer creation, signalingState is:', pc.signalingState);
+            return;
+          }
+          isMakingOfferRef.current = true;
+          try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ type: 'offer', roomId, offer }));
+          } finally {
+            isMakingOfferRef.current = false;
+          }
         }
+        // 2. Receiver receives "offer" -> Accept offer and send Answer
         else if (message.type === 'offer' && role === 'receiver') {
-          await rtcRef.current.setRemoteDescription(new RTCSessionDescription(message.offer));
-          const answer = await rtcRef.current.createAnswer();
-          await rtcRef.current.setLocalDescription(answer);
+          if (pc.signalingState !== 'stable') {
+            await Promise.all([
+              pc.setLocalDescription({ type: 'rollback' }),
+              pc.setRemoteDescription(new RTCSessionDescription(message.offer))
+            ]);
+          } else {
+            await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+          }
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
           ws.send(JSON.stringify({ type: 'answer', roomId, answer }));
           await processIceQueue();
         } 
+        // 3. Sender receives "answer" -> Accept answer ONLY if waiting for it (have-local-offer)
         else if (message.type === 'answer' && role === 'sender') {
-          await rtcRef.current.setRemoteDescription(new RTCSessionDescription(message.answer));
-          await processIceQueue();
+          if (pc.signalingState === 'have-local-offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
+            await processIceQueue();
+          } else {
+            console.warn('[CandyShare] Ignored duplicate answer. Current state is:', pc.signalingState);
+          }
         } 
+        // 4. Handle ICE candidate exchange
         else if (message.type === 'candidate') {
-          if (rtcRef.current.remoteDescription && rtcRef.current.remoteDescription.type) {
-            await rtcRef.current.addIceCandidate(new RTCIceCandidate(message.candidate));
+          if (pc.remoteDescription && pc.remoteDescription.type) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+            } catch (e) {
+              console.warn('[CandyShare] Candidate error ignored:', e);
+            }
           } else {
             iceQueueRef.current.push(message.candidate);
           }
@@ -89,7 +120,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
       try {
         await rtcRef.current.addIceCandidate(new RTCIceCandidate(cand));
       } catch (e) {
-        console.error('[CandyShare] Error adding queued ICE candidate', e);
+        console.warn('[CandyShare] Error adding queued ICE candidate', e);
       }
     }
     iceQueueRef.current = [];
