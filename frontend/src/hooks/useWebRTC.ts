@@ -96,12 +96,20 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   };
 
   const initWebRTC = () => {
-    // NEW: Expanded STUN list to guarantee Mobile connections in India
+    // Upgraded with OpenRelay TURN for global mobile NAT traversal
     const configuration = { 
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun.cloudflare.com:3478' } // Cloudflare is extremely fast in India
+        { 
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        { 
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
       ] 
     };
     const peerConnection = new RTCPeerConnection(configuration);
