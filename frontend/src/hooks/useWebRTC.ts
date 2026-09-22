@@ -100,22 +100,13 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { 
-          urls: 'turn:openrelay.metered.ca:80',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        { 
-          urls: 'turn:openrelay.metered.ca:443',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
-        },
-        { 
-          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-          username: 'openrelayproject',
-          credential: 'openrelayproject'
+          urls: process.env.NEXT_TURN_URL || 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: process.env.NEXT_TURN_USERNAME || 'openrelayproject',
+          credential: process.env.NEXT_TURN_CREDENTIAL || 'openrelayproject'
         }
       ] 
     };
+    
     const peerConnection = new RTCPeerConnection(configuration);
     rtcRef.current = peerConnection;
 
