@@ -12,6 +12,9 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   const rtcRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<RTCDataChannel | null>(null);
   
+  // NEW: The ICE Candidate Queue to fix Mobile Network race conditions
+  const iceQueueRef = useRef<RTCIceCandidateInit[]>([]);
+  
   const bytesTransferredRef = useRef(0);
   const lastTimeRef = useRef(Date.now());
   const lastBytesRef = useRef(0);
@@ -23,6 +26,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   useEffect(() => {
     if (!roomId) return;
 
+    // Use environment variable for Vercel deployment
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws/signaling';
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
@@ -53,12 +57,19 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
           const answer = await rtcRef.current.createAnswer();
           await rtcRef.current.setLocalDescription(answer);
           ws.send(JSON.stringify({ type: 'answer', roomId, answer }));
+          processIceQueue(); // Handshake done, flush the queue!
         } 
         else if (message.type === 'answer' && role === 'sender') {
           await rtcRef.current.setRemoteDescription(new RTCSessionDescription(message.answer));
+          processIceQueue(); // Handshake done, flush the queue!
         } 
         else if (message.type === 'candidate') {
-          await rtcRef.current.addIceCandidate(new RTCIceCandidate(message.candidate));
+          // If handshake isn't done yet, queue the candidate. Otherwise, add it directly.
+          if (rtcRef.current.remoteDescription) {
+            await rtcRef.current.addIceCandidate(new RTCIceCandidate(message.candidate));
+          } else {
+            iceQueueRef.current.push(message.candidate);
+          }
         }
       } catch (err) {
         console.error("WebRTC Error:", err);
@@ -71,8 +82,28 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     };
   }, [roomId, role]);
 
+  // NEW: Process any candidates that arrived too early
+  const processIceQueue = async () => {
+    if (!rtcRef.current || !rtcRef.current.remoteDescription) return;
+    for (const cand of iceQueueRef.current) {
+      try {
+        await rtcRef.current.addIceCandidate(new RTCIceCandidate(cand));
+      } catch (e) {
+        console.error('Error adding queued ICE candidate', e);
+      }
+    }
+    iceQueueRef.current = []; // Clear queue
+  };
+
   const initWebRTC = () => {
-    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    // NEW: Expanded STUN list to guarantee Mobile connections in India
+    const configuration = { 
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' } // Cloudflare is extremely fast in India
+      ] 
+    };
     const peerConnection = new RTCPeerConnection(configuration);
     rtcRef.current = peerConnection;
 
@@ -139,14 +170,14 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     }
   };
 
-const sendFile = (fileToSend: File) => {
+  const sendFile = (fileToSend: File) => {
     if (!channelRef.current || channelRef.current.readyState !== 'open') return;
     setTransferState('transferring');
     
     channelRef.current.send(JSON.stringify({ type: 'meta', name: fileToSend.name, size: fileToSend.size }));
 
-    const chunkSize = 64 * 1024; // 64KB chunks
-    const MAX_BUFFER = 1024 * 1024; // 1MB Buffer limit
+    const chunkSize = 64 * 1024; 
+    const MAX_BUFFER = 1024 * 1024;
     let offset = 0;
     
     bytesTransferredRef.current = 0;
@@ -154,8 +185,6 @@ const sendFile = (fileToSend: File) => {
     lastBytesRef.current = 0;
 
     const fileReader = new FileReader();
-
-    // Tell WebRTC to notify us when the buffer drops below 64KB
     channelRef.current.bufferedAmountLowThreshold = chunkSize;
 
     fileReader.onload = (e) => {
@@ -169,15 +198,12 @@ const sendFile = (fileToSend: File) => {
         updateProgress(offset > fileToSend.size ? fileToSend.size : offset, fileToSend.size);
 
         if (offset < fileToSend.size) {
-          // --- BACKPRESSURE LOGIC ---
           if (channelRef.current.bufferedAmount > MAX_BUFFER) {
-            // The tube is full! Pause and wait for it to drain.
             channelRef.current.onbufferedamountlow = () => {
-              channelRef.current!.onbufferedamountlow = null; // unbind event
-              readSlice(offset); // Resume reading
+              channelRef.current!.onbufferedamountlow = null; 
+              readSlice(offset); 
             };
           } else {
-            // Tube is clear, keep pushing data
             readSlice(offset);
           }
         } else {
@@ -193,7 +219,7 @@ const sendFile = (fileToSend: File) => {
       fileReader.readAsArrayBuffer(slice);
     };
 
-    readSlice(0); // Start the engine
+    readSlice(0);
   };
 
   const assembleAndDownload = () => {
