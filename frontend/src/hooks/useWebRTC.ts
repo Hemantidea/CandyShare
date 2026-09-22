@@ -30,14 +30,12 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     if (!roomId) return;
 
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws/signaling';
-    console.log(`[CandyShare] Connecting to signaling: ${WS_URL} for room: ${roomId}`);
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('[CandyShare] WebSocket Connected');
+    ws.onopen = async () => {
       ws.send(JSON.stringify({ type: 'join', roomId }));
-      initWebRTC();
+      await initWebRTC();
       
       if (role === 'sender') {
         setTransferState('waiting');
@@ -52,13 +50,11 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
 
       try {
         if (message.type === 'ready' && role === 'sender') {
-          console.log('[CandyShare] Receiver is ready. Creating Offer...');
           const offer = await rtcRef.current.createOffer();
           await rtcRef.current.setLocalDescription(offer);
           ws.send(JSON.stringify({ type: 'offer', roomId, offer }));
         }
         else if (message.type === 'offer' && role === 'receiver') {
-          console.log('[CandyShare] Received Offer. Creating Answer...');
           await rtcRef.current.setRemoteDescription(new RTCSessionDescription(message.offer));
           const answer = await rtcRef.current.createAnswer();
           await rtcRef.current.setLocalDescription(answer);
@@ -66,7 +62,6 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
           await processIceQueue();
         } 
         else if (message.type === 'answer' && role === 'sender') {
-          console.log('[CandyShare] Received Answer. Establishing P2P Connection...');
           await rtcRef.current.setRemoteDescription(new RTCSessionDescription(message.answer));
           await processIceQueue();
         } 
@@ -100,39 +95,34 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     iceQueueRef.current = [];
   };
 
-  const initWebRTC = () => {
-    const turnUrl = process.env.NEXT_PUBLIC_TURN_URL || 'turn:global.relay.metered.ca:443';
-    const turnUser = process.env.NEXT_PUBLIC_TURN_USERNAME || 'openrelayproject';
-    const turnPass = process.env.NEXT_PUBLIC_TURN_CREDENTIAL || 'openrelayproject';
+  const initWebRTC = async () => {
+    let iceServers: RTCIceServer[] = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ];
+
+    const apiKey = process.env.NEXT_METERED_API_KEY;
+    const domain = process.env.NEXT_PUBLIC_METERED_DOMAIN || 'candyshare.metered.live';
+
+    if (apiKey) {
+      try {
+        const response = await fetch(`https://${domain}/api/v1/turn/credentials?apiKey=${apiKey}`);
+        if (response.ok) {
+          const meteredIceServers = await response.json();
+          iceServers = meteredIceServers;
+        }
+      } catch (err) {
+        console.error('[CandyShare] Failed to fetch Metered TURN servers, falling back to STUN:', err);
+      }
+    }
 
     const configuration: RTCConfiguration = { 
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun.relay.metered.ca:80' },
-        { 
-          urls: [
-            turnUrl,
-            `${turnUrl}?transport=tcp`,
-            'turn:global.relay.metered.ca:80',
-            'turn:global.relay.metered.ca:80?transport=tcp'
-          ],
-          username: turnUser,
-          credential: turnPass
-        }
-      ],
+      iceServers,
       iceCandidatePoolSize: 10
     };
 
     const peerConnection = new RTCPeerConnection(configuration);
     rtcRef.current = peerConnection;
-
-    peerConnection.oniceconnectionstatechange = () => {
-      console.log(`[CandyShare] ICE State: ${peerConnection.iceConnectionState}`);
-    };
-
-    peerConnection.onconnectionstatechange = () => {
-      console.log(`[CandyShare] Peer Connection State: ${peerConnection.connectionState}`);
-    };
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate && wsRef.current) {
@@ -141,13 +131,10 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     };
 
     if (role === 'sender') {
-      const dataChannel = peerConnection.createDataChannel('candyChannel', {
-        ordered: true
-      });
+      const dataChannel = peerConnection.createDataChannel('candyChannel', { ordered: true });
       setupDataChannel(dataChannel);
     } else {
       peerConnection.ondatachannel = (event) => {
-        console.log('[CandyShare] Receiver DataChannel Received!');
         setupDataChannel(event.channel);
       };
     }
@@ -158,7 +145,6 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     channelRef.current = channel;
 
     channel.onopen = () => {
-      console.log('[CandyShare] DataChannel is OPEN!');
       if (role === 'sender' && fileRef.current) {
         sendFile(fileRef.current);
       }
@@ -203,14 +189,9 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   };
 
   const sendFile = (fileToSend: File) => {
-    if (!channelRef.current || channelRef.current.readyState !== 'open') {
-      console.warn('[CandyShare] Cannot send file, channel not open');
-      return;
-    }
+    if (!channelRef.current || channelRef.current.readyState !== 'open') return;
     
-    console.log(`[CandyShare] Starting transfer for: ${fileToSend.name} (${fileToSend.size} bytes)`);
     setTransferState('transferring');
-    
     channelRef.current.send(JSON.stringify({ type: 'meta', name: fileToSend.name, size: fileToSend.size }));
 
     const chunkSize = 64 * 1024;
@@ -244,7 +225,6 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
             readSlice(offset);
           }
         } else {
-          console.log('[CandyShare] File Transfer Complete!');
           setTimeout(() => setTransferState('completed'), 500);
         }
       } catch (err) {
@@ -261,7 +241,6 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   };
 
   const assembleAndDownload = () => {
-    console.log('[CandyShare] Assembling file and triggering download...');
     const blob = new Blob(receivedBuffersRef.current);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
