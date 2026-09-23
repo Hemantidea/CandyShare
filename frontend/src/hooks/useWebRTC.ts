@@ -30,86 +30,78 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
   useEffect(() => {
     if (!roomId) return;
 
-    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws/signaling';
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
+    let isMounted = true;
+    let ws: WebSocket | null = null;
 
-    ws.onopen = async () => {
-      ws.send(JSON.stringify({ type: 'join', roomId }));
+    const startConnection = async () => {
       await initWebRTC();
-      
-      if (role === 'sender') {
-        setTransferState('waiting');
-      } else {
-        ws.send(JSON.stringify({ type: 'ready', roomId }));
-      }
-    };
+      if (!isMounted) return;
 
-    ws.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      if (!rtcRef.current) return;
+      const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws/signaling';
+      ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
 
-      const pc = rtcRef.current;
-
-      try {
-        // 1. Sender receives "ready" -> Create Offer only if in 'stable' state
-        if (message.type === 'ready' && role === 'sender') {
-          if (pc.signalingState !== 'stable' || isMakingOfferRef.current) {
-            console.warn('[CandyShare] Skipping offer creation, signalingState is:', pc.signalingState);
-            return;
-          }
-          isMakingOfferRef.current = true;
-          try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            ws.send(JSON.stringify({ type: 'offer', roomId, offer }));
-          } finally {
-            isMakingOfferRef.current = false;
-          }
+      ws.onopen = () => {
+        ws?.send(JSON.stringify({ type: 'join', roomId }));
+        
+        if (role === 'sender') {
+          setTransferState('waiting');
+        } else {
+          ws?.send(JSON.stringify({ type: 'ready', roomId }));
         }
-        // 2. Receiver receives "offer" -> Accept offer and send Answer
-        else if (message.type === 'offer' && role === 'receiver') {
-          if (pc.signalingState !== 'stable') {
-            await Promise.all([
-              pc.setLocalDescription({ type: 'rollback' }),
-              pc.setRemoteDescription(new RTCSessionDescription(message.offer))
-            ]);
-          } else {
-            await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
-          }
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          ws.send(JSON.stringify({ type: 'answer', roomId, answer }));
-          await processIceQueue();
-        } 
-        // 3. Sender receives "answer" -> Accept answer ONLY if waiting for it (have-local-offer)
-        else if (message.type === 'answer' && role === 'sender') {
-          if (pc.signalingState === 'have-local-offer') {
-            await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
-            await processIceQueue();
-          } else {
-            console.warn('[CandyShare] Ignored duplicate answer. Current state is:', pc.signalingState);
-          }
-        } 
-        // 4. Handle ICE candidate exchange
-        else if (message.type === 'candidate') {
-          if (pc.remoteDescription && pc.remoteDescription.type) {
+      };
+
+      ws.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        if (!rtcRef.current) return;
+
+        const pc = rtcRef.current;
+
+        try {
+          if (message.type === 'ready' && role === 'sender') {
+            if (pc.signalingState !== 'stable' || isMakingOfferRef.current) return;
+            isMakingOfferRef.current = true;
             try {
-              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
-            } catch (e) {
-              console.warn('[CandyShare] Candidate error ignored:', e);
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              ws?.send(JSON.stringify({ type: 'offer', roomId, offer }));
+            } finally {
+              isMakingOfferRef.current = false;
             }
-          } else {
-            iceQueueRef.current.push(message.candidate);
           }
+          else if (message.type === 'offer' && role === 'receiver') {
+            await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            ws?.send(JSON.stringify({ type: 'answer', roomId, answer }));
+            await processIceQueue();
+          } 
+          else if (message.type === 'answer' && role === 'sender') {
+            if (pc.signalingState === 'have-local-offer') {
+              await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
+              await processIceQueue();
+            }
+          } 
+          else if (message.type === 'candidate') {
+            if (pc.remoteDescription && pc.remoteDescription.type) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+              } catch (_) {}
+            } else {
+              iceQueueRef.current.push(message.candidate);
+            }
+          }
+        } catch (err) {
+          console.error('[CandyShare] Signaling Error:', err);
         }
-      } catch (err) {
-        console.error('[CandyShare] Signaling Error:', err);
-      }
+      };
     };
+
+    startConnection();
 
     return () => {
-      ws.close();
+      isMounted = false;
+      ws?.close();
       rtcRef.current?.close();
     };
   }, [roomId, role]);
@@ -119,9 +111,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     for (const cand of iceQueueRef.current) {
       try {
         await rtcRef.current.addIceCandidate(new RTCIceCandidate(cand));
-      } catch (e) {
-        console.warn('[CandyShare] Error adding queued ICE candidate', e);
-      }
+      } catch (_) {}
     }
     iceQueueRef.current = [];
   };
@@ -142,9 +132,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
           const meteredIceServers = await response.json();
           iceServers = meteredIceServers;
         }
-      } catch (err) {
-        console.error('[CandyShare] Failed to fetch Metered TURN servers, falling back to STUN:', err);
-      }
+      } catch (_) {}
     }
 
     const configuration: RTCConfiguration = { 
@@ -156,7 +144,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     rtcRef.current = peerConnection;
 
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate && wsRef.current) {
+      if (event.candidate && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'candidate', roomId, candidate: event.candidate }));
       }
     };
@@ -328,8 +316,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
           status
         })
       });
-    } catch (e) {
-    }
+    } catch (_) {}
   };
 
   return { transferState, progress, speed, reset, downloadFile: assembleAndDownload };
