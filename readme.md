@@ -33,7 +33,6 @@
 - [Class & Component UML Model](#-class--component-uml-model)
 - [Engineering Challenges & Breakthroughs](#-engineering-challenges--breakthroughs)
 - [Technology Stack](#-technology-stack)
-- [Local Development & Setup](#-local-development--setup)
 - [Author & License](#-author--license)
 
 ---
@@ -138,10 +137,37 @@ The structural design leverages Object-Oriented principles, Spring Data JPA abst
 
 ---
 
-## 👤 Author & Acknowledgments
+---
 
-**Hemant Verma**
-National Institute of Technology (NIT) Rourkela
+## 👤 Author & Engineering Profile
 
-**LinkedIn:** linkedin.com/in/hemant-verma-ind
-**GitHub:** @Hemantidea
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=22c55e&height=120&section=header&text=Hemant%20Verma&fontSize=38&fontColor=ffffff&animation=fadeIn&fontAlignY=38" width="100%"/>
+
+<a href="https://github.com/Hemantidea">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=18&duration=3000&pause=1000&color=16A34A&center=true&vCenter=true&width=600&lines=Final-Year+EE+@+NIT+Rourkela;GATE+CS+AIR+6k+(Score:+524);Codeforces+Specialist+(Rating:+1418);Full-Stack+%26+Distributed+Systems+Engineer" alt="Typing SVG" />
+</a>
+
+<br/>
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Hemant_Verma-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hemant-verma-ind/)
+[![GitHub](https://img.shields.io/badge/GitHub-Hemantidea-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Hemantidea)
+
+</div>
+
+<br/>
+
+## 🤝 Acknowledgments & Open Protocols
+
+* **WebRTC Working Group (W3C / IETF):** For defining the peer-to-peer data transport standards (`RTCDataChannel`, SCTP, and DTLS 1.3).
+* **Metered.ca:** For enterprise STUN and global TURN network traversal relays.
+* **Spring Initializr & Hibernate Community:** For the high-performance enterprise Java signaling and persistence ecosystem.
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=f0fdf4&height=40&section=footer&text=Made%20with%20%E2%9D%A4%EF%B8%8F%20in%20India%20%F0%9F%87%AE%F0%9F%87%B3%20%E2%80%A2%20Designed%20%26%20Engineered%20by%20Hemant%20Verma&fontSize=14&fontColor=14532d&fontAlignY=60" width="100%"/>
+
+</div>
