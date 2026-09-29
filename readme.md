@@ -1,13 +1,28 @@
 <div align="center">
+<a href="https://candyshare.vercel.app">
 
-# 🍬 CandyShare
-### *Decentralized, Zero-Cloud Peer-to-Peer File Transfer*
+<!-- Animated Header Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=22c55e&height=180&section=header&text=CandyShare&fontSize=52&fontColor=ffffff&fontAlignY=38&desc=Decentralized%20Zero-Cloud%20P2P%20File%20Transfer%20Engine&descFontSize=18&descAlignY=62" width="100%"/>
+</a>
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-candyshare.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white)](https://candyshare.vercel.app)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Hemantidea%2FCandyShare-0D1117?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Hemantidea/CandyShare)
+<br/><br/>
 
-<br/>
+<!-- Interactive Quick-Action Buttons -->
+<a href="https://candyshare.vercel.app">
+  <img src="https://img.shields.io/badge/🌐_Launch_Live_App-22c55e?style=for-the-badge&logoColor=white" height="34"/>
+</a>
+&nbsp;
+<a href="https://github.com/Hemantidea/CandyShare">
+  <img src="https://img.shields.io/badge/📦_GitHub_Repo-0D1117?style=for-the-badge&logo=github&logoColor=white" height="34"/>
+</a>
+&nbsp;
+<a href="https://www.linkedin.com/in/hemant-verma-ind/">
+  <img src="https://img.shields.io/badge/👨‍💻_Connect_on_LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" height="34"/>
+</a>
 
+<br/><br/>
+
+<!-- Tech Stack Badges -->
 ![Java](https://img.shields.io/badge/Java_17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=springboot&logoColor=white)
 ![Hibernate](https://img.shields.io/badge/Hibernate_ORM-59666C?style=flat-square&logo=hibernate&logoColor=white)
@@ -18,110 +33,97 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
+<br/><br/>
+
+<!-- Interactive Quick Metrics Cards -->
+<table>
+  <tr>
+    <td align="center" width="25%"><b>🔒 Zero Server Storage</b><br/><sub>Bytes never touch disks</sub></td>
+    <td align="center" width="25%"><b>⚡ Gigabit LAN Speed</b><br/><sub>50-100+ MB/s over Wi-Fi</sub></td>
+    <td align="center" width="25%"><b>🛡️ DTLS 1.3 Security</b><br/><sub>Native E2E Encryption</sub></td>
+    <td align="center" width="25%"><b>📊 Process Audit Log</b><br/><sub>Spring JPA + Neon Postgres</sub></td>
+  </tr>
+</table>
+
 <br/>
 
-**CandyShare** is a browser-native, zero-cloud file-streaming platform designed to transfer files of arbitrary size directly between edge devices. By decoupling data transmission from server storage, payloads stream directly from sender memory to receiver memory over encrypted WebRTC data channels, backed by a Java Spring Boot WebSocket signaling plane and an anonymized PostgreSQL process audit engine.
+<p align="center">
+  <b>CandyShare</b> is a browser-native, zero-cloud file-streaming platform designed to transfer files of arbitrary size directly between edge devices. By decoupling data transmission from server storage, payloads stream directly from sender memory to receiver memory over encrypted WebRTC data channels, backed by a Java Spring Boot WebSocket signaling plane and an anonymized PostgreSQL process audit engine.
+</p>
 
 </div>
 
 ---
 
 ## 📑 Table of Contents
-- [Key Architectural Highlights](#-key-architectural-highlights)
-- [System Architecture & Deployment](#-system-architecture--deployment)
-- [End-to-End Sequence Lifecycle](#-end-to-end-sequence-lifecycle)
-- [Class & Component UML Model](#-class--component-uml-model)
-- [Engineering Challenges & Breakthroughs](#-engineering-challenges--breakthroughs)
-- [Technology Stack](#-technology-stack)
-- [Author & License](#-author--license)
+- Key Architectural Highlights
+- System Architecture & Deployment
+- End-to-End Sequence Lifecycle
+- Class & Component UML Model
+- Engineering Challenges & Breakthroughs
+- Technology Stack
+- Author & License
+---
+
+## ⚡ Key Highlights
+
+* 🔒 **Zero Server Storage:** Files stream directly browser-to-browser via WebRTC with native **DTLS 1.3** end-to-end encryption.
+* 🚀 **LAN Gigabit Speeds:** Prioritizes local Host ICE candidates over Wi-Fi networks (**50–100+ MB/s**) with 0 MB internet data usage.
+* 🌊 **Adaptive Backpressure:** Regulates `FileReader` chunking using a 1MB watermark buffer threshold, preventing browser OOM crashes.
+* 🌐 **Symmetric NAT Traversal:** Bypasses mobile carrier CGNATs via dynamic **Metered.ca TURN relays** over Port 443 TCP.
+* 📊 **Privacy-First Audit Logging:** Emits anonymized event telemetry (`MIME class`, `logarithmic size bucket`) to Neon PostgreSQL via Spring Data JPA.
+* 🌍 **Bilingual Client:** Built with Next.js 16 and Tailwind CSS v4, supporting English and Hindi via zero-dependency client context.
 
 ---
 
-## ⚡ Key Architectural Highlights
+## 🏛️ System Architecture
 
-* 🔒 **Zero-Knowledge & Zero Server Storage:** File bytes never touch intermediate disks or cloud storage. Payload streaming is negotiated peer-to-peer with hardware-enforced **DTLS 1.3** end-to-end encryption.
-* 🚀 **LAN Gigabit Acceleration:** Prioritizes local Host ICE candidates over STUN/TURN relays. Peers sharing a Wi-Fi subnet stream data at physical router throughput (**50–100+ MB/s**) with 0 MB internet quota consumption.
-* 🌊 **Adaptive Backpressure Control:** Regulates client-side `FileReader` chunk ingestion using a 1MB high-watermark buffer threshold (`bufferedAmountLowThreshold`), eliminating browser out-of-memory crashes on multi-gigabyte transfers.
-* 🌐 **Multi-Tiered NAT Traversal:** Integrates Google STUN discovery with dynamic **Metered.ca TURN relays** over Port 443 TCP, bypassing strict Carrier-Grade NATs (CGNAT) and mobile deep-packet-inspection firewalls.
-* 📊 **Privacy-Preserving Process Audit Engine:** Implements an enterprise event-logging pipeline using **Spring Data JPA, Hibernate, and Neon PostgreSQL**. Categorizes transfers into MIME types and logarithmic size buckets (`< 1MB`, `1MB–100MB`) to provide structured telemetry for Process Mining analytics without storing sensitive metadata.
-* 🌍 **Bilingual & Responsive Interface:** Built with Next.js 16, TypeScript, and Tailwind CSS v4, supporting English and Hindi via zero-dependency client state context.
-
----
-
-## 🏛️ System Architecture & Deployment
-
-The platform follows a decoupled micro-architecture separating the **Data Plane** (WebRTC P2P streams) from the **Control Plane** (Spring Boot WebSocket signaling) and **Persistence Plane** (Neon PostgreSQL).
+Decoupled architecture separating the **Data Plane** (WebRTC P2P), **Control Plane** (Spring Boot WebSockets), and **Persistence Plane** (PostgreSQL).
 
 <div align="center">
-  <img src="./assets/architecture-deployment.png" alt="CandyShare System Architecture & Deployment Diagram" width="95%" />
+  <img src="./assets/architecture-deployment.png" alt="Architecture Diagram" width="95%" />
 </div>
 
-### Architectural Tiers:
-1. **Client Tier (Browser WebRTC Engines):** Executes file slicing, chunk streaming over `RTCDataChannel`, in-memory buffer reassembly, and native blob generation.
-2. **Frontend Hosting (Vercel Edge Network):** Serves the statically optimized Next.js 16 single-page application and manages dynamic TURN credential provisioning.
-3. **Signaling Tier (Render Cloud):** Multi-stage Dockerized Java 17 / Spring Boot service managing full-duplex WebSocket connections (`/ws/signaling`) and ephemeral room states via `ConcurrentHashMap`. Maintained with 24/7 uptime via automated keep-alive probes.
-4. **Network Traversal Tier:** Distributed STUN/TURN infrastructure (Google STUN + Metered.ca REST API) executing interactive connectivity checks over UDP and Port 443 TCP/TLS.
-5. **Persistence Tier (Neon Cloud):** Serverless PostgreSQL storing immutable lifecycle records (`p2p_transfer_audits`) via Hibernate ORM.
+* **Client Tier:** Next.js 16 browsers executing chunking, memory assembly, and direct `RTCDataChannel` streaming.
+* **Signaling Tier:** Dockerized Java 17 / Spring Boot service on Render managing WebSocket rooms via `ConcurrentHashMap`.
+* **Network Traversal:** Google STUN + dynamic Metered.ca TURN relays over Port 443 TCP.
+* **Persistence Tier:** Serverless Neon PostgreSQL storing immutable audit logs via Hibernate ORM.
 
 ---
 
-## 🔄 End-to-End Sequence Lifecycle
-
-The dynamic lifecycle of a CandyShare session decouples session signaling, network route resolution, payload transmission, and audit logging into four discrete phases:
+## 🔄 End-to-End Transfer Flow
 
 <div align="center">
-  <img src="./assets/sequence-diagram.png" alt="CandyShare Sequence Diagram" width="85%" />
+  <img src="./assets/sequence-diagram.png" alt="Sequence Diagram" width="85%" />
 </div>
 
-### Lifecycle Breakdown:
-1. **Signaling & Discovery Phase:** 
-   * Sender establishes a full-duplex WebSocket session with Spring Boot and creates an isolated room.
-   * Receiver scans the QR code, resolves dynamic TURN credentials, and signals readiness (`{"type": "ready"}`).
-2. **SDP & ICE Negotiation Phase:** 
-   * Sender generates an **SDP Offer** defining transport codecs and cryptographic parameters; Receiver responds with an **SDP Answer**.
-   * Both clients discover and exchange candidates across Local (Host), Public (STUN), and Relay (TURN) network paths.
-3. **P2P Data Plane (Direct Tunnel):** 
-   * A direct, encrypted `RTCDataChannel` opens. The Java server steps out of the data path.
-   * Payloads are sliced into **64KB chunks**, streamed sequentially, and throttled via client backpressure listeners (`onbufferedamountlow`).
-4. **Completion & Process Audit Ingestion:** 
-   * Receiver stitches binary chunks into a `Blob` and triggers automatic browser download.
-   * Both clients asynchronously dispatch anonymized event logs (`POST /api/v1/audit/log`), which are ingested into PostgreSQL via Hibernate.
+1. **Discovery:** Sender creates room; Receiver accepts transfer to prevent bot pre-fetching.
+2. **Negotiation:** Peers exchange **SDP Offer/Answer** and **ICE candidates** via Java WebSockets.
+3. **Data Plane:** Direct DTLS-encrypted channel streams **64KB chunks** with backpressure flow control.
+4. **Audit Log:** Receiver triggers native download; both peers dispatch anonymized telemetry to PostgreSQL.
 
 ---
 
-## 📐 Class & Component UML Model
-
-The structural design leverages Object-Oriented principles, Spring Data JPA abstractions, and React Hook state encapsulation:
+## 📐 Class & Component Model
 
 <div align="center">
-  <img src="./assets/class-diagram.png" alt="CandyShare Class Diagram" width="95%" />
+  <img src="./assets/class-diagram.png" alt="Class Diagram" width="95%" />
 </div>
 
-### Core Modules:
-* `SignalingHandler`: Extends Spring's `TextWebSocketHandler` with thread-safe data structures (`ConcurrentHashMap<String, CopyOnWriteArrayList<WebSocketSession>>`) to guarantee race-condition-free room orchestration.
-* `AuditController` & `TransferAuditRepository`: Implements REST endpoints and extends `JpaRepository` for auto-generated, type-safe database queries.
-* `useWebRTC`: Encapsulates all browser-level WebRTC networking, ICE queue buffering, and backpressure chunk streaming behind a declarative hook interface.
+* `SignalingHandler`: Extends `TextWebSocketHandler` with thread-safe `ConcurrentHashMap` room state.
+* `AuditController` & `TransferAuditRepository`: REST controller and `JpaRepository` interface for process audit telemetry.
+* `useWebRTC`: Custom React hook managing WebSockets, candidate queues, and backpressure chunking.
 
 ---
 
-## 🛠️ Engineering Challenges & Breakthroughs
+## 🛠️ Engineering Challenges & Fixes
 
-### 1. Producer-Consumer Buffer Overflow (The 12% Hang)
-* **Problem:** Disk `FileReader` read speeds (~500 MB/s) drastically outpaced network socket throughput (~15 MB/s), flooding the browser's `RTCDataChannel` queue and crashing large transfers at 12%.
-* **Solution:** Implemented **Adaptive Backpressure**. Monitored `channel.bufferedAmount` against a 1MB high watermark, suspending file reading until `bufferedAmountLowThreshold` (64KB) signals queue availability.
-
-### 2. Social Media Link Preview Crawler Hijacking
-* **Problem:** Sharing session links over WhatsApp/iMessage caused background headless crawlers to load the page, prematurely joining rooms and consuming SDP offers before the human recipient opened the tab.
-* **Solution:** Introduced a client-side **User Consent Gate** (`hasJoined`), suspending WebSocket signaling until explicit user confirmation ("Accept Transfer").
-
-### 3. Asynchronous ICE Candidate Race Conditions
-* **Problem:** On high-latency mobile networks, ICE candidates arrived at the client before the SDP Offer/Answer Promise resolved, triggering browser `InvalidStateError`.
-* **Solution:** Engineered an in-memory candidate buffer (`iceQueueRef`) that queues premature candidates and flushes them atomically after `setRemoteDescription()` resolves.
-
-### 4. Symmetric Carrier-Grade NAT (CGNAT) Traversal
-* **Problem:** Mobile cellular networks (Jio/Airtel) randomize public ports per destination, mathematically preventing STUN hole-punching and blocking UDP streams.
-* **Solution:** Integrated dynamic REST provisioning of enterprise TURN relays with **Port 443 TCP transport fallback**, encapsulating SCTP packets in TLS-compliant streams.
-
+| Challenge | Root Cause | Solution |
+| :--- | :--- | :--- |
+| **Buffer Overflow (12% Hang)** | Disk read speed (~500 MB/s) overwhelmed network throughput (~15 MB/s). | **Adaptive Backpressure:** Pauses reading at 1MB buffer; resumes at 64KB via `onbufferedamountlow`. |
+| **Social Crawler Hijacking** | WhatsApp link preview bots crawled URLs and consumed SDP offers. | **User Consent Gate:** Suspends WebRTC signaling until human clicks "Accept Transfer". |
+| **ICE Race Conditions** | Mobile network latency caused ICE candidates to arrive before remote SDP was set. | **Candidate Queue:** In-memory queue buffers early candidates and flushes after SDP resolution. |
+| **Symmetric Mobile NATs** | Cellular carriers (Jio/Airtel) randomize ports and filter arbitrary UDP traffic. | **TCP Fallback:** Dynamically provisions TURN relays over **Port 443 TCP**. |
 ---
 
 ## 🧰 Technology Stack
@@ -137,22 +139,17 @@ The structural design leverages Object-Oriented principles, Spring Data JPA abst
 
 ---
 
----
-
 ## 👤 Author & Engineering Profile
 
 <div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=22c55e&height=120&section=header&text=Hemant%20Verma&fontSize=38&fontColor=ffffff&animation=fadeIn&fontAlignY=38" width="100%"/>
-
-<a href="https://github.com/Hemantidea">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=18&duration=3000&pause=1000&color=16A34A&center=true&vCenter=true&width=600&lines=Final-Year+EE+@+NIT+Rourkela;GATE+CS+AIR+6k+(Score:+524);Codeforces+Specialist+(Rating:+1418);Full-Stack+%26+Distributed+Systems+Engineer" alt="Typing SVG" />
+<a href="https://www.linkedin.com/in/hemant-verma-ind/">
+<!-- Cleaned Header Banner (No Emoji Crashes) -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=22c55e&height=120&section=header&text=Hemant%20Verma&fontSize=38&fontColor=ffffff&fontAlignY=38" width="100%"/>
 </a>
+<br/><br/>
 
-<br/>
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Hemant_Verma-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hemant-verma-ind/)
-[![GitHub](https://img.shields.io/badge/GitHub-Hemantidea-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Hemantidea)
+[![LinkedIn Profile](https://img.shields.io/badge/LinkedIn-Hemant_Verma-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hemant-verma-ind/)
+[![GitHub Profile](https://img.shields.io/badge/GitHub-Hemantidea-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Hemantidea)
 
 </div>
 
@@ -167,7 +164,10 @@ The structural design leverages Object-Oriented principles, Spring Data JPA abst
 ---
 
 <div align="center">
+<a href="https://www.linkedin.com/in/hemant-verma-ind/">
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=f0fdf4&height=40&section=footer&text=Made%20with%20%E2%9D%A4%EF%B8%8F%20in%20India%20%F0%9F%87%AE%F0%9F%87%B3%20%E2%80%A2%20Designed%20%26%20Engineered%20by%20Hemant%20Verma&fontSize=14&fontColor=14532d&fontAlignY=60" width="100%"/>
+<!-- Cleaned Bottom Footer (No URL Encoding Crashes) -->
+<img src="https://capsule-render.vercel.app/api?type=rect&color=f0fdf4&height=40&section=footer&text=Made%20in%20India%20--%20Designed%20and%20Engineered%20by%20Hemant%20Verma&fontSize=14&fontColor=14532d&fontAlignY=60" width="100%"/>
+</a>
 
 </div>
