@@ -136,8 +136,7 @@ export function useWebRTC(roomId: string, role: 'sender' | 'receiver', file?: Fi
     }
 
     const configuration: RTCConfiguration = { 
-      iceServers,
-      iceCandidatePoolSize: 10
+      iceServers
     };
 
     const peerConnection = new RTCPeerConnection(configuration);
